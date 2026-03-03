@@ -16,7 +16,65 @@ services:
     volumes:
       - ./qdrant_data:/qdrant/storage
 
+  vllm-llm:
+    image: vllm/vllm-openai:latest
+    container_name: vllm-llm
+    runtime: nvidia
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    ipc: host
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    command: >
+      AMead10/Llama-3.2-3B-Instruct-AWQ
+      --gpu-memory-utilization 0.6
+      --max-model-len 2048
+      --enforce-eager
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  tei-embedding:
+    image: ghcr.io/huggingface/text-embeddings-inference:cuda-1.9
+    ports:
+      - "8001:80"
+    volumes:
+      - hf_cache:/data
+    command: --model-id Qwen/Qwen3-Embedding-0.6B
+    pull_policy: always
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  tei-reranker:
+    image: ghcr.io/huggingface/text-embeddings-inference:cuda-1.9
+    ports:
+      - "8002:80"
+    volumes:
+      - hf_cache:/data
+    command: --model-id jinaai/jina-reranker-v3 --dtype float16
+    pull_policy: always
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
 configs:
   qdrant_config:
     content: |
       log_level: INFO
+
+volumes:
+  hf_cache:

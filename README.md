@@ -27,3 +27,8 @@ Gunakan perintah berikut untuk mendapatkan image (pull) vLLM dan menjalankan mod
         --max-model-len 4096 \
         --gpu-memory-utilization 0.8
 ```
+
+
+### Referensi
+1. [25 chunking tricks for RAG that devs actually use](https://medium.com/@dev_tips/25-chunking-tricks-for-rag-that-devs-actually-use-12bebd0375bc)
+2. [Open Source Embedding Models](https://www.bentoml.com/blog/a-guide-to-open-source-embedding-models)
