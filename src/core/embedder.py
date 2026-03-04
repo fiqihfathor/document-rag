@@ -10,7 +10,7 @@ async def embed_texts(texts: list[str]) -> list[list[float]]:
     try:
         async with httpx.AsyncClient(timeout=TIMEOUT) as client:
             response = await client.post(
-                settings.EMBEDDING_URL,
+                f"{settings.EMBEDDING_URL}/embed",
                 json={"inputs": texts},
             )
             response.raise_for_status()

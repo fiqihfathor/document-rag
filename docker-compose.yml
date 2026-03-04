@@ -52,7 +52,7 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              count: all
+              count: 1
               capabilities: [gpu]
 
   tei-reranker:
@@ -61,15 +61,29 @@ services:
       - "8002:80"
     volumes:
       - hf_cache:/data
-    command: --model-id jinaai/jina-reranker-v3 --dtype float16
+    command: --model-id BAAI/bge-reranker-v2-m3 --dtype float16
     pull_policy: always
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
-              count: all
+              count: 1
               capabilities: [gpu]
+
+
+  api:
+    build: .
+    container_name: rag_api
+    ports:
+      - "8080:8080"
+    env_file: .env
+    restart: unless-stopped
+    depends_on:
+      - qdrant
+      - tei-embedding
+      - tei-reranker
+      - vllm-llm
 
 configs:
   qdrant_config:
