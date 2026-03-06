@@ -1,5 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from src.core.pipeline import ingest_pipeline
+from src.core import vector_store
 
 router = APIRouter()
 
@@ -20,6 +21,5 @@ async def ingest_pdf(file: UploadFile = File(...)):
 
 @router.delete("/ingest/{filename}")
 async def delete_document(filename: str):
-    from src.core import qdrant_store
-    await qdrant_store.delete_by_filename(filename)
+    await vector_store.delete_by_filename(filename)
     return {"deleted": filename}

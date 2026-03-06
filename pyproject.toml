@@ -1,7 +1,7 @@
 [project]
 name = "document-rag"
 version = "0.1.0"
-description = "Add your description here"
+description = "Document RAG using hybrid search"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

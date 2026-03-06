@@ -7,7 +7,16 @@ from src.core import vector_store
 from src.core.llm_client import generate
 from src.config import settings
 from src.utils.logger import logger
+from dataclasses import dataclass
 
+@dataclass
+class GenerateResult:
+    answer: str
+    prompt_used: str
+    prompt_tokens: int
+    completion_tokens: int
+    sources: list[dict]
+    
 async def ingest_pipeline(file_bytes: bytes, filename: str) -> dict:
     pages = parse_pdf(file_bytes, filename)
     if not pages:
@@ -40,7 +49,7 @@ async def ingest_pipeline(file_bytes: bytes, filename: str) -> dict:
     }
 
 
-async def query_pipeline(query: str) -> dict:
+async def query_pipeline(query: str) -> GenerateResult:
     query_vector = await embed_query(query)
 
     results = await vector_store.search(
@@ -53,17 +62,25 @@ async def query_pipeline(query: str) -> dict:
     reranked = [c for c in reranked if c["rerank_score"] > 0.01]
 
     if not reranked:
-        return {
-            "answer": "The information was not found in the provided documents",
-            "sources": [],
-        }
+        return GenerateResult(
+            answer="The information was not found in the provided documents",
+            prompt_used="No prompt used to llm",
+            prompt_tokens=0,
+            completion_tokens=0,
+            sources=[]   
+        )
+            
 
-    answer = await generate(query, reranked)
+    output = await generate(query, reranked)
 
     logger.info(f"Query done: '{query[:50]}'")
-    return {
-        "answer": answer,
-        "sources": [
+    
+    return GenerateResult(
+        answer=output["answer"],
+        prompt_used=output["prompt_used"],
+        prompt_tokens=output["token_usage"]["prompt_tokens"],
+        completion_tokens=output["token_usage"]["completion_tokens"],
+        sources=[
             {
                 "filename": c["filename"],
                 "page_number": c["page_number"],
@@ -72,4 +89,4 @@ async def query_pipeline(query: str) -> dict:
             }
             for c in reranked
         ],
-    }
+    )

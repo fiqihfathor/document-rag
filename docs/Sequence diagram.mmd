@@ -1,0 +1,19 @@
+sequenceDiagram
+    participant U as User
+    participant API as FastAPI
+    participant EMB as Embedder
+    participant QD as Qdrant
+    participant LLM as LLM
+
+    U->>API: POST /query {question}
+    API->>EMB: embed(question)
+    EMB-->>API: vector[1024]
+    API->>QD: hybrid_search(vector, top_k=5)
+    QD-->>API: chunks[]
+    alt chunks found
+        API->>LLM: generate(prompt + chunks)
+        LLM-->>API: answer
+        API-->>U: 200 {answer, sources}
+    else no context
+        API-->>U: 404 context not found
+    end

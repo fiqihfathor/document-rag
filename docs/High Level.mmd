@@ -1,0 +1,21 @@
+flowchart TB
+    subgraph Client
+        U([User]) --> API[FastAPI]
+    end
+
+    subgraph Ingestion
+        API -- POST /ingest --> ING[Ingest Service]
+        ING --> PDF[PDF Reader] --> CHK[Chunker] --> EMB[Embedder]
+    end
+
+    subgraph Query
+        API -- POST /query --> QRY[Query Service]
+        QRY --> EMB2[Embedder] --> RTV[Retriever] --> RNK[Reranker] --> GEN[LLM]
+        GEN --> RES([Response])
+    end
+
+    subgraph Data Layer
+        DB[(Qdrant)]
+        EMB -- upsert --> DB
+        RTV -- hybrid search --> DB
+    end

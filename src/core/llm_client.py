@@ -34,6 +34,7 @@ async def generate(query: str, chunks: list[dict]) -> str:
         },
     ]
 
+    prompt_used = messages[1]["content"]
     response = await client.chat.completions.create(
         model=settings.LLM_MODEL,
         messages=messages,
@@ -43,4 +44,10 @@ async def generate(query: str, chunks: list[dict]) -> str:
 
     answer = response.choices[0].message.content
     logger.debug(f"Generated answer — {len(answer)} chars")
-    return answer
+    return{
+        "answer": answer,
+        "prompt_used": prompt_used,
+        "token_usage": {
+            "prompt_tokens": response.usage.prompt_tokens,
+            "completion_tokens": response.usage.completion_tokens,
+        }}
